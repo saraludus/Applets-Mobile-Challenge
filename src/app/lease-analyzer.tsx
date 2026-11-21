@@ -6,13 +6,39 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    View
+    View,
 } from "react-native";
+
+import LeaseAnalysisResults, {
+    type LeaseIssue,
+} from "../components/lease-analysis-results";
+
+// Fictional data used only to test the interface.
+const demoIssues: LeaseIssue[] = [
+  {
+    id: "1",
+    title: "Dépôt de garantie",
+    severity: "high",
+    clause: "Le locataire doit verser un dépôt de garantie de 500 $.",
+    explanation:
+      "Au Québec, un propriétaire ne peut généralement pas exiger un dépôt de garantie. Cette clause pourrait être problématique.",
+  },
+  {
+    id: "2",
+    title: "Accès au logement",
+    severity: "medium",
+    clause:
+      "Le propriétaire peut entrer dans le logement sans préavis.",
+    explanation:
+      "L'accès du propriétaire au logement est encadré par la loi. Cette clause devrait être vérifiée.",
+  },
+];
 
 export default function LeaseAnalyzerScreen() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileUri, setFileUri] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [showResults, setShowResults] = useState(false);
 
   const pickDocument = async () => {
     try {
@@ -23,11 +49,13 @@ export default function LeaseAnalyzerScreen() {
 
       if (!result.canceled && result.assets.length > 0) {
         const file = result.assets[0];
+
         setFileName(file.name);
         setFileUri(file.uri);
         setMessage("");
+        setShowResults(false);
       }
-    } catch (error) {
+    } catch {
       setMessage("Erreur lors de la sélection du fichier.");
     }
   };
@@ -38,9 +66,9 @@ export default function LeaseAnalyzerScreen() {
       return;
     }
 
-    setMessage(
-      "Votre PDF est prêt ! L'analyse IA sera ajoutée prochainement."
-    );
+    // No real AI call yet.
+    setMessage("");
+    setShowResults(true);
   };
 
   return (
@@ -48,7 +76,9 @@ export default function LeaseAnalyzerScreen() {
       style={styles.container}
       contentContainerStyle={styles.content}
     >
-      <Text style={styles.title}>Analyse de bail 📄</Text>
+      <Text style={styles.title}>
+        Analyse de bail 📄
+      </Text>
 
       <Text style={styles.subtitle}>
         Téléversez votre contrat de location pour
@@ -93,12 +123,22 @@ export default function LeaseAnalyzerScreen() {
         disabled={!fileUri}
       >
         <Text style={styles.analyzeButtonText}>
-          Analyser mon bail avec l'IA
+          Afficher les résultats de démonstration
         </Text>
       </Pressable>
 
       {message !== "" && (
-        <Text style={styles.message}>{message}</Text>
+        <Text style={styles.message}>
+          {message}
+        </Text>
+      )}
+
+      {showResults && (
+        <LeaseAnalysisResults
+          issues={demoIssues}
+          language="fr"
+          isDemo
+        />
       )}
 
       <Text style={styles.disclaimer}>
