@@ -36,6 +36,14 @@ export default function AppTabs() {
           <TabTrigger name="leaseAnalyzer" href="/lease-analyzer" asChild>
             <TabButton>Analyse IA</TabButton>
           </TabTrigger>
+
+          <TabTrigger
+              name="budgetCalculator"
+              href="/budget-calculator"
+              asChild
+            >
+              <TabButton>Budget</TabButton>
+            </TabTrigger>
         </CustomTabList>
       </TabList>
     </Tabs>
