@@ -52,3 +52,16 @@ export async function getSession() {
 
   return data.session;
 }
+
+
+export function onAuthStateChange(
+  callback: (session: import('@supabase/supabase-js').Session | null) => void
+) {
+  const { data } = supabase.auth.onAuthStateChange(
+    (_event, session) => {
+      callback(session);
+    }
+  );
+
+  return data.subscription;
+}
