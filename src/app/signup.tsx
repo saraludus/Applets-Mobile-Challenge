@@ -52,12 +52,18 @@ export default function SignupScreen() {
           [{ text: 'OK', onPress: () => router.replace('/login' as any) }]
         );
       }
-    } catch (error) {
-      Alert.alert(
-        'Signup failed',
-        error instanceof Error ? error.message : 'Something went wrong.'
-      );
-    } finally {
+    } catch (error: any) {
+        console.log('SIGNUP ERROR:', error);
+        console.log('ERROR MESSAGE:', error?.message);
+        console.log('ERROR DETAILS:', error?.details);
+        console.log('ERROR STATUS:', error?.status);
+
+        Alert.alert(
+            'Signup failed',
+            error?.message || 'Something went wrong.'
+        );
+        }
+    finally {
       setLoading(false);
     }
   }
