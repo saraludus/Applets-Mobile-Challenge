@@ -28,6 +28,16 @@ export default function AppTabs() {
           renderingMode="template"
         />
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="tenants-rights">
+        <NativeTabs.Trigger.Label>Droits</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="house.fill" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="lease-analyzer">
+        <NativeTabs.Trigger.Label>Analyse IA</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="doc.text.magnifyingglass" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
