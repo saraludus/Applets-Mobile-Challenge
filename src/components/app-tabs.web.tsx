@@ -29,11 +29,11 @@ export default function AppTabs() {
             <TabButton>Explore</TabButton>
           </TabTrigger>
 
-          <TabTrigger name="tenantRights" href="/tenants-rights" asChild>
+          <TabTrigger name="tenantRights" href={'/tenants-rights' as any} asChild>
             <TabButton>Droits</TabButton>
           </TabTrigger>
 
-          <TabTrigger name="leaseAnalyzer" href="/lease-analyzer" asChild>
+          <TabTrigger name="leaseAnalyzer" href={'/lease-analyzer' as any} asChild>
             <TabButton>Analyse IA</TabButton>
           </TabTrigger>
 
