@@ -1,4 +1,4 @@
-
+import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -16,6 +16,14 @@ export default function HomeScreen() {
       </Pressable>
 
       <Text style={styles.note}>Your home screen is working!</Text>
+      <Pressable
+        style={styles.button}
+        onPress={async () => {
+          await supabase.auth.signOut();
+        }}
+      >
+        <Text style={styles.buttonText}>Log out</Text>
+      </Pressable>
     </View>
   );
 }
