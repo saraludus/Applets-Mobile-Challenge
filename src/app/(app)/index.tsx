@@ -244,7 +244,7 @@ export default function HomeScreen() {
             icon="people-outline"
             title={t.roommates}
             description={t.roommatesDesc}
-            onPress={() => router.push('/matching')}
+            onPress={() => router.push('/explore?section=colocs')}
             width={cardWidth}
             featured
           />
@@ -253,7 +253,7 @@ export default function HomeScreen() {
             icon="home-outline"
             title={t.apartments}
             description={t.apartmentsDesc}
-            onPress={() => router.push('/explore')}
+            onPress={() => router.push('/explore?section=logements')}
             width={cardWidth}
           />
         </View>
