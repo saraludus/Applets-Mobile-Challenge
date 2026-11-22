@@ -3,8 +3,8 @@ import ListingCard from "@/components/logements/ListingCard";
 import { useLanguage } from "@/lib/language";
 import { fetchListings } from "@/lib/listings";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -38,7 +38,7 @@ const translations = {
     allBedrooms: "Toutes",
     results: "Logements disponibles",
     empty: "Aucun logement ne correspond à votre recherche.",
-    demo: "Annonces de démonstration",
+    addListing: "Ajouter un logement",
   },
   en: {
     title: "Explore apartments",
@@ -53,7 +53,7 @@ const translations = {
     allBedrooms: "All",
     results: "Available apartments",
     empty: "No apartments match your search.",
-    demo: "Demo listings",
+    addListing: "Add Listing",
   },
 };
 
@@ -66,35 +66,38 @@ export default function ExploreScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-    async function loadListings() {
-      try {
-        const data = await fetchListings();
+      async function loadListings() {
+        try {
+          const data = await fetchListings();
 
-        if (active) {
-          setListings(data);
-        }
-      } catch (err) {
-        console.error("Failed to load listings:", err);
+          if (active) {
+            setListings(data);
+            setError(null);
+          }
+        } catch (err) {
+          console.error("Failed to load listings:", err);
 
-        if (active) {
-          setError("Failed to load listings");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
+          if (active) {
+            setError("Failed to load listings");
+          }
+        } finally {
+          if (active) {
+            setLoading(false);
+          }
         }
       }
-    }
 
-    loadListings();
+      loadListings();
 
-    return () => {
-      active = false;
-    };
-  }, []);
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
   const [search, setSearch] = useState("");
   const [maxRent, setMaxRent] = useState<number | null>(null);
 
@@ -143,6 +146,14 @@ export default function ExploreScreen() {
         <Text style={styles.title}>{t.title}</Text>
         <Text style={styles.subtitle}>{t.subtitle}</Text>
       </View>
+
+      <Pressable
+        style={styles.addButton}
+        onPress={() => router.push("/add-listing")}
+      >
+        <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
+        <Text style={styles.addButtonText}>{t.addListing}</Text>
+      </Pressable>
 
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={21} color={C.muted} />
@@ -250,8 +261,6 @@ export default function ExploreScreen() {
         <Text style={styles.sectionTitle}>{t.results}</Text>
         <Text style={styles.count}>{filteredListings.length}</Text>
       </View>
-
-      <Text style={styles.demoLabel}>{t.demo}</Text>
 
       {loading ? (
         <Text style={styles.empty}>
@@ -386,5 +395,21 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: C.dark,
     marginBottom: 10,
+  },
+  addButton: {
+    backgroundColor: C.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

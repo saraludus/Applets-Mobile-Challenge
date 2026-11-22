@@ -23,8 +23,7 @@ const translations = {
     month: "/mois",
     bedrooms: "chambres",
     about: "À propos de ce logement",
-    description:
-      "Découvrez ce logement situé à Montréal. Cette annonce est un exemple de démonstration.",
+    description: "Découvrez ce logement situé à Montréal.",
     demo: "Annonce de démonstration",
     notFound: "Logement introuvable.",
     loading: "Chargement du logement...",
@@ -35,8 +34,7 @@ const translations = {
     month: "/month",
     bedrooms: "bedrooms",
     about: "About this apartment",
-    description:
-      "Discover this apartment located in Montreal. This is a demonstration listing.",
+    description: "Discover this apartment located in Montreal.",
     demo: "Demo listing",
     notFound: "Apartment not found.",
     loading: "Loading apartment...",
@@ -170,7 +168,7 @@ export default function ListingDetailsScreen() {
         <Text style={styles.sectionTitle}>{t.about}</Text>
         <Text style={styles.description}>{t.description}</Text>
 
-        <Text style={styles.demo}>{t.demo}</Text>
+        {listing.isDemo && <Text style={styles.demo}>{t.demo}</Text>}
       </View>
     </ScrollView>
   );

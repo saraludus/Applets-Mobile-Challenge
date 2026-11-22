@@ -9,6 +9,7 @@ export type Listing = {
   rent: number;
   bedrooms: number;
   imageUrl: string;
+  isDemo: boolean;
 };
 
 type ListingCardProps = {
@@ -77,9 +78,11 @@ export default function ListingCard({
             </Text>
           </View>
 
-          <View style={styles.demoBadge}>
-            <Text style={styles.demoText}>{fr ? "Démo" : "Demo"}</Text>
-          </View>
+          {listing.isDemo && (
+            <View style={styles.demoBadge}>
+              <Text style={styles.demoText}>{fr ? "Démo" : "Demo"}</Text>
+            </View>
+          )}
         </View>
       </View>
     </Pressable>
