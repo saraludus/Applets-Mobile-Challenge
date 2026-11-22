@@ -9,6 +9,7 @@ export const listings: Listing[] = [
     bedrooms: 2,
     imageUrl:
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900",
+    isDemo: true,
   },
   {
     id: "2",
@@ -18,6 +19,7 @@ export const listings: Listing[] = [
     bedrooms: 3,
     imageUrl:
       "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=900",
+    isDemo: true,
   },
   {
     id: "3",
@@ -27,6 +29,7 @@ export const listings: Listing[] = [
     bedrooms: 2,
     imageUrl:
       "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=900",
+    isDemo: true,
   },
   {
     id: "4",
@@ -36,6 +39,7 @@ export const listings: Listing[] = [
     bedrooms: 4,
     imageUrl:
       "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900",
+    isDemo: true,
   },
 ];
 

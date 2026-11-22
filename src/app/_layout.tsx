@@ -67,6 +67,7 @@ export default function RootLayout() {
               name="listing/[id]"
               options={{ headerShown: false }}
             />
+            <Stack.Screen name="add-listing" options={{ headerShown: false }} />
           </Stack.Protected>
         </Stack>
       </ThemeProvider>
