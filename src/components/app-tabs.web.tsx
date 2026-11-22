@@ -39,7 +39,7 @@ export default function AppTabs() {
 
           <TabTrigger
               name="budgetCalculator"
-              href="/budget-calculator"
+              href={'/budget-calculator' as any}
               asChild
             >
               <TabButton>Budget</TabButton>

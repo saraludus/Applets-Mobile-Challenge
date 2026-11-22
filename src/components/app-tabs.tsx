@@ -36,6 +36,7 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
+     
       <NativeTabs.Trigger name="budget-calculator">
         <NativeTabs.Trigger.Label>
           Budget
@@ -43,6 +44,16 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Icon
           sf="dollarsign.circle"
           md="account_balance_wallet"
+        />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="matching">
+        <NativeTabs.Trigger.Label>
+          Matching
+        </NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          src={require('@/assets/images/tabIcons/explore.png')}
+          renderingMode="template"
         />
       </NativeTabs.Trigger>
     </NativeTabs>
