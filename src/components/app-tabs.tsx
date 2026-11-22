@@ -1,42 +1,51 @@
 
+import { useLanguage } from '@/lib/language';
 import { NativeTabs } from 'expo-router/native-tabs';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+const colors = {
+  background: '#FFFCF8',
+  primary: '#B65C48',
+  inactive: '#806B65',
+  indicator: '#F4C4B1',
+};
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const { language } = useLanguage();
+  const fr = language === 'fr';
 
   return (
     <NativeTabs
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
+      tintColor={colors.primary}
+      indicatorColor={colors.indicator}
       labelStyle={{
-        selected: { color: colors.text },
+        default: { color: colors.inactive },
+        selected: { color: colors.primary },
       }}
     >
+      {/* HOME */}
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>
-          Accueil
+          {fr ? 'Accueil' : 'Home'}
         </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
+          sf="house"
+          md="home"
         />
       </NativeTabs.Trigger>
 
+      {/* EXPLORE */}
       <NativeTabs.Trigger name="explore">
         <NativeTabs.Trigger.Label>
-          Explorer
+          {fr ? 'Explorer' : 'Explore'}
         </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf="magnifyingglass"
+          md="search"
         />
       </NativeTabs.Trigger>
 
-     
+      {/* BUDGET */}
       <NativeTabs.Trigger name="budget-calculator">
         <NativeTabs.Trigger.Label>
           Budget
@@ -47,15 +56,19 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="matching">
+      {/* PROFILE */}
+      <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>
-          Matching
+          {fr ? 'Profil' : 'Profile'}
         </NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf="person.crop.circle"
+          md="person"
         />
       </NativeTabs.Trigger>
+
+      {/* MATCHING - AVAILABLE BUT NOT SHOWN IN BOTTOM NAV */}
+      <NativeTabs.Trigger name="matching" hidden />
     </NativeTabs>
   );
 }
