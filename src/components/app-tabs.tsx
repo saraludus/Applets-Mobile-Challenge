@@ -67,8 +67,11 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      {/* MATCHING - AVAILABLE BUT NOT SHOWN IN BOTTOM NAV */}
+            {/* MATCHING - AVAILABLE BUT NOT SHOWN IN BOTTOM NAV */}
       <NativeTabs.Trigger name="matching" hidden />
+
+      {/* NOTIFICATIONS - AVAILABLE BUT NOT SHOWN IN BOTTOM NAV */}
+      <NativeTabs.Trigger name="notifications" hidden />
     </NativeTabs>
   );
 }

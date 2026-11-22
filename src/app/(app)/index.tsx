@@ -2,8 +2,8 @@
 import { useLanguage } from '@/lib/language';
 import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -135,6 +135,58 @@ export default function HomeScreen() {
 
   const [firstName, setFirstName] = useState('');
 
+
+  const [hasPendingRequests, setHasPendingRequests] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      async function checkNotifications() {
+        const { data: authData, error: authError } =
+          await supabase.auth.getUser();
+
+        if (authError || !authData.user) {
+          if (active) setHasPendingRequests(false);
+          return;
+        }
+
+        
+        // Requests waiting for me to answer
+        const { count: incomingCount, error: incomingError } =
+          await supabase
+            .from('roommate_connections')
+            .select('id', { count: 'exact', head: true })
+            .eq('receiver_id', authData.user.id)
+            .eq('status', 'pending');
+
+        // My requests that someone answered but I haven't seen
+        const { count: responseCount, error: responseError } =
+          await supabase
+            .from('roommate_connections')
+            .select('id', { count: 'exact', head: true })
+            .eq('sender_id', authData.user.id)
+            .in('status', ['accepted', 'declined'])
+            .is('response_seen_at', null);
+
+        if (active && !incomingError && !responseError) {
+          setHasPendingRequests(
+            (incomingCount ?? 0) > 0 ||
+            (responseCount ?? 0) > 0
+          );
+        }
+
+      }
+
+      checkNotifications();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  
   const cardWidth: '48%' | '100%' =
     width >= 350 ? '48%' : '100%';
 
@@ -188,6 +240,7 @@ export default function HomeScreen() {
     >
       <View style={styles.content}>
 
+        
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.brand}>
@@ -201,7 +254,7 @@ export default function HomeScreen() {
 
             <View>
               <Text style={styles.brandTitle}>
-                Notre Coloc
+                CoHabitat
               </Text>
               <Text style={styles.location}>
                 {t.city}
@@ -209,19 +262,62 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <Pressable
-            style={styles.profileButton}
-            onPress={() => router.push('/profile')}
-            accessibilityRole="button"
-            accessibilityLabel={t.profile}
+          {/* NOTIFICATIONS AND PROFILE */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+            }}
           >
-            <Ionicons
-              name="person-outline"
-              size={22}
-              color={C.primary}
-            />
-          </Pressable>
+            {/* NOTIFICATION BELL */}
+            
+            <Pressable
+              style={styles.profileButton}
+              onPress={() => router.push('/notifications')}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={22}
+                color={C.primary}
+              />
+
+              {hasPendingRequests && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 5,
+                    right: 5,
+                    width: 11,
+                    height: 11,
+                    borderRadius: 6,
+                    backgroundColor: '#E53935',
+                    borderWidth: 2,
+                    borderColor: '#FFFCF8',
+                  }}
+                />
+              )}
+            </Pressable>
+
+
+            {/* PROFILE BUTTON */}
+            <Pressable
+              style={styles.profileButton}
+              onPress={() => router.push('/profile')}
+              accessibilityRole="button"
+              accessibilityLabel={t.profile}
+            >
+              <Ionicons
+                name="person-outline"
+                size={22}
+                color={C.primary}
+              />
+            </Pressable>
+          </View>
         </View>
+
 
         {/* GREETING */}
         <View style={styles.welcome}>
