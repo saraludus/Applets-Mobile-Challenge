@@ -1,8 +1,10 @@
-import { getListingById } from "@/data/listings";
+import type { Listing } from "@/components/logements/ListingCard";
 import { useLanguage } from "@/lib/language";
+import { fetchListingById } from "@/lib/listings";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -25,6 +27,8 @@ const translations = {
       "Découvrez ce logement situé à Montréal. Cette annonce est un exemple de démonstration.",
     demo: "Annonce de démonstration",
     notFound: "Logement introuvable.",
+    loading: "Chargement du logement...",
+    error: "Impossible de charger ce logement.",
   },
   en: {
     back: "Back",
@@ -35,6 +39,8 @@ const translations = {
       "Discover this apartment located in Montreal. This is a demonstration listing.",
     demo: "Demo listing",
     notFound: "Apartment not found.",
+    loading: "Loading apartment...",
+    error: "Unable to load this apartment.",
   },
 };
 
@@ -45,7 +51,64 @@ export default function ListingDetailsScreen() {
   const t = translations[language];
 
   const { id } = useLocalSearchParams<{ id: string }>();
-  const listing = getListingById(id);
+
+  const [result, setResult] = useState<{
+    id: string;
+    listing: Listing | null;
+    error: boolean;
+  } | null>(null);
+
+  const loading = !!id && result?.id !== id;
+  const error = result?.id === id && result.error;
+  const listing = result?.id === id ? result.listing : null;
+
+  useEffect(() => {
+    if (!id) return;
+
+    let active = true;
+
+    async function loadListing() {
+      try {
+        const data = await fetchListingById(id);
+
+        if (active) {
+          setResult({
+            id,
+            listing: data,
+            error: false,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load apartment:", err);
+
+        if (active) {
+          setResult({
+            id,
+            listing: null,
+            error: true,
+          });
+        }
+      }
+    }
+
+    loadListing();
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading || error) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <Text style={styles.title}>{loading ? t.loading : t.error}</Text>
+
+        <Pressable onPress={() => router.back()}>
+          <Text style={styles.backText}>{t.back}</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (!listing) {
     return (

@@ -1,9 +1,10 @@
+import type { Listing } from "@/components/logements/ListingCard";
 import ListingCard from "@/components/logements/ListingCard";
-import { listings } from "@/data/listings";
 import { useLanguage } from "@/lib/language";
+import { fetchListings } from "@/lib/listings";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -61,7 +62,39 @@ export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const { language } = useLanguage();
   const t = translations[language];
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadListings() {
+      try {
+        const data = await fetchListings();
+
+        if (active) {
+          setListings(data);
+        }
+      } catch (err) {
+        console.error("Failed to load listings:", err);
+
+        if (active) {
+          setError("Failed to load listings");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadListings();
+
+    return () => {
+      active = false;
+    };
+  }, []);
   const [search, setSearch] = useState("");
   const [maxRent, setMaxRent] = useState<number | null>(null);
 
@@ -92,7 +125,7 @@ export default function ExploreScreen() {
         matchesSearch && matchesRent && matchesNeighborhood && matchesBedrooms
       );
     });
-  }, [search, maxRent, selectedNeighborhood, minBedrooms]);
+  }, [listings, search, maxRent, selectedNeighborhood, minBedrooms]);
 
   return (
     <ScrollView
@@ -220,7 +253,19 @@ export default function ExploreScreen() {
 
       <Text style={styles.demoLabel}>{t.demo}</Text>
 
-      {filteredListings.length === 0 ? (
+      {loading ? (
+        <Text style={styles.empty}>
+          {language === "fr"
+            ? "Chargement des logements..."
+            : "Loading apartments..."}
+        </Text>
+      ) : error ? (
+        <Text style={styles.empty}>
+          {language === "fr"
+            ? "Impossible de charger les logements."
+            : "Unable to load apartments."}
+        </Text>
+      ) : filteredListings.length === 0 ? (
         <Text style={styles.empty}>{t.empty}</Text>
       ) : (
         filteredListings.map((listing) => (
