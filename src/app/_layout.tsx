@@ -1,10 +1,10 @@
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { LanguageProvider } from "@/lib/language";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, useColorScheme, View } from "react-native";
-import { LanguageProvider } from "@/lib/language";
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);

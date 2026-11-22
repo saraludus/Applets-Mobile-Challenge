@@ -5,11 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
-    View,
+    View
 } from 'react-native';
 
 type Roommate = {
@@ -204,6 +205,90 @@ export default function ColocsExplore() {
       matchesSocial
     );
   });
+
+
+  const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [sentRequests, setSentRequests] = useState<string[]>([]);
+
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSentRequests() {
+      const { data: authData, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !authData.user) return;
+
+      const { data, error } = await supabase
+        .from('roommate_connections')
+        .select('receiver_id')
+        .eq('sender_id', authData.user.id);
+
+      if (error) {
+        console.error('Error loading connection requests:', error.message);
+        return;
+      }
+
+      if (active) {
+        setSentRequests(
+          (data ?? []).map((request) => request.receiver_id)
+        );
+      }
+    }
+
+    loadSentRequests();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function sendConnectionRequest(receiverId: string) {
+    if (sendingTo !== null || sentRequests.includes(receiverId)) {
+      return;
+    }
+
+    setSendingTo(receiverId);
+
+    try {
+      const { data, error: authError } =
+        await supabase.auth.getUser();
+
+      if (authError || !data.user) {
+        throw new Error('You must be signed in.');
+      }
+
+      const { error } = await supabase
+        .from('roommate_connections')
+        .insert({
+          sender_id: data.user.id,
+          receiver_id: receiverId,
+          status: 'pending',
+        });
+
+      if (error) throw error;
+
+      setSentRequests((previous) => [...previous, receiverId]);
+
+      Alert.alert(
+        fr ? 'Demande envoyée !' : 'Request sent!',
+        fr
+          ? 'Votre demande de connexion a été envoyée.'
+          : 'Your connection request has been sent.'
+      );
+    } catch (error) {
+      Alert.alert(
+        fr ? 'Erreur' : 'Error',
+        error instanceof Error
+          ? error.message
+          : 'Unable to send request.'
+      );
+    } finally {
+      setSendingTo(null);
+    }
+  }
+
 
   const activeCount = Object.values(applied).filter(
     (value) => value !== 'all'
@@ -626,6 +711,50 @@ export default function ColocsExplore() {
                       : '—'}
               </Text>
             </View>
+                        {/* CONNECT BUTTON */}
+            <Pressable
+             onPress={() => sendConnectionRequest(person.user_id)}
+disabled={
+  sendingTo !== null ||
+  sentRequests.includes(person.user_id)
+}
+              style={{
+                backgroundColor: '#B65C48',
+                borderRadius: 12,
+                paddingVertical: 14,
+                marginTop: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+                opacity: sendingTo !== null ? 0.6 : 1,
+              }}
+            >
+              <Ionicons
+                name="person-add-outline"
+                size={19}
+                color="#FFFFFF"
+              />
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: 14,
+                  fontWeight: '800',
+                }}
+              >
+               {sentRequests.includes(person.user_id)
+  ? fr
+    ? 'Demande envoyée ✓'
+    : 'Request sent ✓'
+  : sendingTo === person.user_id
+    ? fr
+      ? 'Envoi en cours...'
+      : 'Sending...'
+    : fr
+      ? 'Se connecter'
+      : 'Connect'}
+              </Text>
+            </Pressable>
           </View>
         ))
       )}
