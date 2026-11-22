@@ -1,180 +1,345 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListingCard from "@/components/logements/ListingCard";
+import { useRouter } from "expo-router";
+import { listings } from "@/data/listings";
+import { useLanguage } from "@/lib/language";
+import { Ionicons } from "@expo/vector-icons";
+import { useMemo, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+const C = {
+  bg: "#FFF8F1",
+  primary: "#B65C48",
+  dark: "#33221F",
+  muted: "#806B65",
+  card: "#FFFCF8",
+  border: "#E9D5CC",
+};
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
+const translations = {
+  fr: {
+    title: "Explorer les logements",
+    subtitle: "Trouvez votre prochain chez-vous à Montréal.",
+    search: "Rechercher un quartier ou un logement...",
+    allPrices: "Tous les prix",
+    max800: "800 $ max",
+    max1000: "1 000 $ max",
+    neighborhood: "Quartier",
+    allNeighborhoods: "Tous les quartiers",
+    bedroomFilter: "Nombre de chambres",
+    allBedrooms: "Toutes",
+    results: "Logements disponibles",
+    empty: "Aucun logement ne correspond à votre recherche.",
+    demo: "Annonces de démonstration",
+  },
+  en: {
+    title: "Explore apartments",
+    subtitle: "Find your next home in Montreal.",
+    search: "Search a neighborhood or apartment...",
+    allPrices: "All prices",
+    max800: "$800 max",
+    max1000: "$1,000 max",
+    neighborhood: "Neighborhood",
+    allNeighborhoods: "All neighborhoods",
+    bedroomFilter: "Number of bedrooms",
+    allBedrooms: "All",
+    results: "Available apartments",
+    empty: "No apartments match your search.",
+    demo: "Demo listings",
+  },
+};
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+export default function ExploreScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { language } = useLanguage();
+  const t = translations[language];
+
+  const [search, setSearch] = useState("");
+  const [maxRent, setMaxRent] = useState<number | null>(null);
+
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<
+    string | null
+  >(null);
+
+  const [minBedrooms, setMinBedrooms] = useState<number | null>(null);
+
+  const filteredListings = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return listings.filter((listing) => {
+      const matchesSearch =
+        listing.title.toLowerCase().includes(query) ||
+        listing.neighborhood.toLowerCase().includes(query);
+
+      const matchesRent = maxRent === null || listing.rent <= maxRent;
+
+      const matchesNeighborhood =
+        selectedNeighborhood === null ||
+        listing.neighborhood === selectedNeighborhood;
+
+      const matchesBedrooms =
+        minBedrooms === null || listing.bedrooms >= minBedrooms;
+
+      return (
+        matchesSearch && matchesRent && matchesNeighborhood && matchesBedrooms
+      );
+    });
+  }, [search, maxRent, selectedNeighborhood, minBedrooms]);
 
   return (
     <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+      style={styles.screen}
+      contentContainerStyle={[
+        styles.content,
+        {
+          paddingTop: insets.top + 16,
+          paddingBottom: insets.bottom + 110,
+        },
+      ]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>{t.title}</Text>
+        <Text style={styles.subtitle}>{t.subtitle}</Text>
+      </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
+      <View style={styles.searchBox}>
+        <Ionicons name="search-outline" size={21} color={C.muted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t.search}
+          placeholderTextColor={C.muted}
+          value={search}
+          onChangeText={setSearch}
+          autoCapitalize="none"
+        />
+      </View>
+
+      <View style={styles.filters}>
+        {[
+          { label: t.allPrices, value: null },
+          { label: t.max800, value: 800 },
+          { label: t.max1000, value: 1000 },
+        ].map((filter) => {
+          const selected = maxRent === filter.value;
+
+          return (
+            <Pressable
+              key={filter.label}
+              onPress={() => setMaxRent(filter.value)}
+              style={[styles.filterButton, selected && styles.filterSelected]}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  selected && styles.filterTextSelected,
+                ]}
+              >
+                {filter.label}
+              </Text>
             </Pressable>
-          </ExternalLink>
-        </ThemedView>
+          );
+        })}
+      </View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+      <Text style={styles.filterHeading}>{t.neighborhood}</Text>
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+      <View style={styles.filters}>
+        {[
+          { label: t.allNeighborhoods, value: null },
+          ...Array.from(
+            new Set(listings.map((listing) => listing.neighborhood)),
+          ).map((neighborhood) => ({
+            label: neighborhood,
+            value: neighborhood,
+          })),
+        ].map((filter) => {
+          const selected = selectedNeighborhood === filter.value;
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+          return (
+            <Pressable
+              key={filter.label}
+              onPress={() => setSelectedNeighborhood(filter.value)}
+              style={[styles.filterButton, selected && styles.filterSelected]}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  selected && styles.filterTextSelected,
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+      <Text style={styles.filterHeading}>{t.bedroomFilter}</Text>
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
+      <View style={styles.filters}>
+        {[
+          { label: t.allBedrooms, value: null },
+          { label: "2+", value: 2 },
+          { label: "3+", value: 3 },
+          { label: "4+", value: 4 },
+        ].map((filter) => {
+          const selected = minBedrooms === filter.value;
+
+          return (
+            <Pressable
+              key={filter.label}
+              onPress={() => setMinBedrooms(filter.value)}
+              style={[styles.filterButton, selected && styles.filterSelected]}
+            >
+              <Text
+                style={[
+                  styles.filterText,
+                  selected && styles.filterTextSelected,
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t.results}</Text>
+        <Text style={styles.count}>{filteredListings.length}</Text>
+      </View>
+
+      <Text style={styles.demoLabel}>{t.demo}</Text>
+
+      {filteredListings.length === 0 ? (
+        <Text style={styles.empty}>{t.empty}</Text>
+      ) : (
+        filteredListings.map((listing) => (
+          <ListingCard
+            key={listing.id}
+            listing={listing}
+            language={language}
+            onPress={() =>
+              router.push({
+                pathname: "/listing/[id]",
+                params: { id: listing.id },
+              })
+            }
+          />
+        ))
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  screen: {
     flex: 1,
+    backgroundColor: C.bg,
   },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  content: {
+    paddingHorizontal: 20,
+    width: "100%",
+    maxWidth: 780,
+    alignSelf: "center",
   },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
+  header: {
+    marginBottom: 24,
   },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: C.dark,
+    marginBottom: 8,
   },
-  centerText: {
-    textAlign: 'center',
+  subtitle: {
+    fontSize: 14,
+    color: C.muted,
+    lineHeight: 21,
   },
-  pressed: {
-    opacity: 0.7,
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 14,
+    paddingHorizontal: 15,
+    height: 54,
+    marginBottom: 16,
   },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
+  searchInput: {
+    flex: 1,
+    color: C.dark,
+    fontSize: 14,
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+  filters: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+    marginBottom: 28,
   },
-  collapsibleContent: {
-    alignItems: 'center',
+  filterButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.border,
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+  filterSelected: {
+    backgroundColor: C.primary,
+    borderColor: C.primary,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  filterText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: C.dark,
+  },
+  filterTextSelected: {
+    color: "#FFFFFF",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: C.dark,
+  },
+  count: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: C.primary,
+  },
+  demoLabel: {
+    fontSize: 11,
+    color: C.muted,
+    marginBottom: 14,
+  },
+  empty: {
+    textAlign: "center",
+    color: C.muted,
+    marginTop: 35,
+    fontSize: 14,
+  },
+  filterHeading: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: C.dark,
+    marginBottom: 10,
   },
 });

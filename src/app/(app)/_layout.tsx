@@ -1,11 +1,5 @@
-
-import AppTabs from '@/components/app-tabs';
-import { LanguageProvider } from '@/lib/language';
+import AppTabs from "@/components/app-tabs";
 
 export default function AppLayout() {
-  return (
-    <LanguageProvider>
-      <AppTabs />
-    </LanguageProvider>
-  );
+  return <AppTabs />;
 }
