@@ -11,9 +11,10 @@ import {
     Pressable,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     TextInput,
-    View,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -375,6 +376,8 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [discoverable, setDiscoverable] = useState(false);
+    const [visibilitySaving, setVisibilitySaving] = useState(false);
 
   // LOAD PROFILE FROM SUPABASE DATABASE
   useEffect(() => {
@@ -396,7 +399,7 @@ export default function ProfileScreen() {
           await supabase
             .from('roommate_profiles')
             .select(
-              'first_name, age, bio, max_budget, sleep_schedule, cleanliness, social_lifestyle'
+                'first_name, age, bio, max_budget, sleep_schedule, cleanliness, social_lifestyle, discoverable'
             )
             .eq('user_id', user.id)
             .maybeSingle();
@@ -465,6 +468,7 @@ export default function ProfileScreen() {
         if (!active) return;
 
         setEmail(user.email || '');
+        setDiscoverable(row?.discoverable === true);
         setProfile(loaded);
         setOriginal(loaded);
 
@@ -614,6 +618,45 @@ export default function ProfileScreen() {
       setSaving(false);
     }
   }
+
+async function updateVisibility(newValue: boolean) {
+  if (visibilitySaving || !completed) return;
+
+  setVisibilitySaving(true);
+
+  try {
+    const { data, error: authError } =
+      await supabase.auth.getUser();
+
+    if (authError || !data.user) {
+      throw authError || new Error('Not signed in');
+    }
+
+    const { data: updated, error } = await supabase
+      .from('roommate_profiles')
+      .update({ discoverable: newValue })
+      .eq('user_id', data.user.id)
+      .select('discoverable')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    setDiscoverable(updated.discoverable === true);
+  } catch (error) {
+    Alert.alert(
+      language === 'fr'
+        ? 'Impossible de modifier la visibilité'
+        : 'Unable to update visibility',
+      error instanceof Error
+        ? error.message
+        : 'Please try again.'
+    );
+  } finally {
+    setVisibilitySaving(false);
+  }
+}
 
   async function logout() {
     if (loggingOut) return;
@@ -1018,11 +1061,83 @@ export default function ProfileScreen() {
         </View>
       )}
 
+      
       {/* SETTINGS */}
       <Text style={styles.sectionTitle}>
         {t.settings}
       </Text>
 
+      {/* PROFILE VISIBILITY CARD */}
+      <View style={styles.card}>
+        <View style={styles.iconRow}>
+          <Ionicons
+            name="eye-outline"
+            size={21}
+            color={C.primary}
+          />
+
+          <Text style={styles.label}>
+            {language === 'fr'
+              ? 'Visibilité du profil'
+              : 'Profile visibility'}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            marginTop: 12,
+          }}
+        >
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 13,
+              color: C.muted,
+              lineHeight: 20,
+            }}
+          >
+            {language === 'fr'
+              ? 'Afficher mon profil aux autres colocataires'
+              : 'Show my profile to other roommates'}
+          </Text>
+
+          <Switch
+            value={discoverable}
+            onValueChange={updateVisibility}
+            disabled={!completed || visibilitySaving}
+            trackColor={{
+              false: '#E9D5CC',
+              true: '#F4C4B1',
+            }}
+            thumbColor={
+              discoverable ? '#B65C48' : '#FFFFFF'
+            }
+          />
+        </View>
+
+        <Text
+          style={{
+            color: C.muted,
+            fontSize: 12,
+            lineHeight: 18,
+            marginTop: 12,
+          }}
+        >
+          {language === 'fr'
+            ? discoverable
+              ? 'Votre profil est visible dans Explorer → Colocs.'
+              : 'Votre profil est privé.'
+            : discoverable
+              ? 'Your profile is visible in Explore → Roommates.'
+              : 'Your profile is private.'}
+        </Text>
+      </View>
+
+      {/* LANGUAGE CARD */}
       <View style={styles.card}>
         <View style={styles.iconRow}>
           <Ionicons
@@ -1030,6 +1145,7 @@ export default function ProfileScreen() {
             size={21}
             color={C.primary}
           />
+
           <Text style={styles.label}>
             {t.language}
           </Text>
