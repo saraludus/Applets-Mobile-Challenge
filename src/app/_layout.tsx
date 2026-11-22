@@ -1,9 +1,10 @@
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import { supabase } from '@/lib/supabase';
-import { Session } from '@supabase/supabase-js';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, useColorScheme, View } from 'react-native';
+import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { supabase } from "@/lib/supabase";
+import { Session } from "@supabase/supabase-js";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, useColorScheme, View } from "react-native";
+import { LanguageProvider } from "@/lib/language";
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -19,7 +20,7 @@ export default function RootLayout() {
       if (!mounted) return;
 
       if (error) {
-        console.error('Session error:', error.message);
+        console.error("Session error:", error.message);
       }
 
       setSession(data.session);
@@ -28,11 +29,12 @@ export default function RootLayout() {
 
     loadSession();
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session);
-        setLoading(false);
-      });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setLoading(false);
+    });
 
     return () => {
       mounted = false;
@@ -42,27 +44,32 @@ export default function RootLayout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
+    <LanguageProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <AnimatedSplashOverlay />
 
-      <Stack>
-        <Stack.Protected guard={!session}>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-        </Stack.Protected>
+        <Stack>
+          <Stack.Protected guard={!session}>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+          </Stack.Protected>
 
-        <Stack.Protected guard={!!session}>
-          <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        </Stack.Protected>
-      </Stack>
-    </ThemeProvider>
+          <Stack.Protected guard={!!session}>
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="listing/[id]"
+              options={{ headerShown: false }}
+            />
+          </Stack.Protected>
+        </Stack>
+      </ThemeProvider>
+    </LanguageProvider>
   );
-
 }
